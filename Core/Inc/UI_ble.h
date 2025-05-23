@@ -20,8 +20,6 @@ typedef struct {
 } VariableEntry;
 
 // 声明实际变量
-extern uint8_t task_running;
-extern uint8_t task_index;
 extern float speed;
 extern VariableEntry variable_table[];
 extern const int variable_count;

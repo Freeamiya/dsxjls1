@@ -33,6 +33,7 @@
 #include "UI_ble.h"
 #include "mpu6050.h"
 #include "counter.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +56,8 @@
 /* USER CODE BEGIN PV */
 uint8_t rx_data[256] = {0};  // 接收缓冲区
 MPU6050_t MPU6050;
+float
+mix_angle = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,6 +107,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+    HAL_TIM_Base_Start_IT(&htim2);
     HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rx_data, sizeof(rx_data));
     __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
   // vl53l0x tof
@@ -113,35 +117,29 @@ int main(void)
   setVcselPulsePeriod(VcselPeriodPreRange, 6);
   setVcselPulsePeriod(VcselPeriodFinalRange, 12);
   setMeasurementTimingBudget(500 * 1000UL);
-  startContinuous(0);
+  // startContinuous(10);
   MPU6050_Init(&hi2c2);
   HAL_Delay(100);
   if(task_index == 1) task1();
+  counter.led_ms = 1000;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//      tof_distance = readRangeContinuousMillimeters(&distanceStr);
-//      uart_printf("Distance: %d mm\r\n", tof_distance);
-//      MPU6050_Read_All(&hi2c2, &MPU6050);
-//      uart_printf("%.2f,%.2f,%.2f\r\n",MPU6050.KalmanAngleX, MPU6050.KalmanAngleY, MPU6050.AngleZ);
+      MPU6050_Read_All(&hi2c2, &MPU6050);
+      // uart_printf("%d\r\n",tof_distance);
+      // mix_angle = sqrt(pow(MPU6050.KalmanAngleX, 2) + pow(MPU6050.KalmanAngleY, 2));
+      mix_angle = sqrt(pow(MPU6050.Gx,2)+pow(MPU6050.Gy,2));
+      // uart_printf("%.2f,%.2f,%.2f,%.2f\r\n",MPU6050.KalmanAngleX, MPU6050.KalmanAngleY, MPU6050.AngleZ,mix_angle);
       if(task_running == 1) {
           switch (task_index) {
             case 1:
                 task1();
                 break;
             case 2:
-//                task2();
-//                  static int sum = 0;
-                  tof_distance = readRangeContinuousMillimeters(&distanceStr);
-//                  for(int i = 0; i < 9; i++) {
-//                      sum += dis_buf[i];
-//                      dis_buf[i+1] = dis_buf[i];
-//                  }
-//                  dis_buf[0] = tof_distance;
-                  uart_printf("Distance: %d mm\r\n", tof_distance);
+                task2();
                 break;
             case 3:
                 task3();
@@ -219,8 +217,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
         if (counter.led_ms > 0) {
             counter.led_ms -= 10;
-        }
-        if (counter.led_ms > 0) {
             HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_SET);
         }else {
             HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_RESET);
