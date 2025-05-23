@@ -75,15 +75,14 @@ void detect_peaks_and_valleys() {
             current_time = HAL_GetTick();
             float period = (current_time - last_time) / 1000.0f; // ×ª»»ÎªÃë
             last_time = current_time;
-            // if (period < 2) {
-                task3_result = 2 * period;
-            // }
-            if (counter.led_ms == 0) {
+            task3_result = 2 * period;
+            if (counter.led_ms == 0 && task3_result > 0.5) {
                 uart_printf("result:%.2f\r\n", task3_result);
             }
-            counter.led_ms = 100;
+            if (task3_result > 0.5) {
+                counter.led_ms = 100;
+            }
         }
-
     }
 
 }
