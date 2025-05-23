@@ -23,7 +23,6 @@ typedef struct {
 extern uint8_t task_running;
 extern uint8_t task_index;
 extern float speed;
-extern int flag;
 extern VariableEntry variable_table[];
 extern const int variable_count;
 

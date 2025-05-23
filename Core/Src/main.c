@@ -32,6 +32,7 @@
 #include "tasks.h"
 #include "UI_ble.h"
 #include "mpu6050.h"
+#include "counter.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -126,25 +127,25 @@ int main(void)
 //      uart_printf("%.2f,%.2f,%.2f\r\n",MPU6050.KalmanAngleX, MPU6050.KalmanAngleY, MPU6050.AngleZ);
       if(task_running == 1) {
           switch (task_index) {
-                case 1:
-                    task1();
-                    break;
-              case 2:
-                  task2();
-                  break;
-              case 3:
-                  task3();
-                  break;
-              case 4:
-                  task4();
-                  break;
-              case 5:
-                  task5();
-                  break;
-              case 6:
-                  task6();
-                  break;
-              default: ;
+            case 1:
+                task1();
+                break;
+            case 2:
+                task2();
+                break;
+            case 3:
+                task3();
+                break;
+            case 4:
+                task4();
+                break;
+            case 5:
+                task5();
+                break;
+            case 6:
+                task6();
+                break;
+            default: ;
           }
       }
     /* USER CODE END WHILE */
@@ -202,6 +203,21 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if(htim->Instance == TIM2)
+    {
+        if (counter.led_ms > 0) {
+            counter.led_ms -= 10;
+        }
+        if (counter.led_ms > 0) {
+            HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_SET);
+        }else {
+            HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_RESET);
+        }
+    }
+}
+
 int my_atoi(const char *str)
 {
     int res = 0;
@@ -252,6 +268,7 @@ float my_atof(const char *str)
 
     return res * sign;
 }
+
 //void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 //{
 //    if (huart->Instance == USART1)
@@ -296,6 +313,7 @@ float my_atof(const char *str)
 //        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
 //    }
 //}
+
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
     if (huart->Instance == USART1)

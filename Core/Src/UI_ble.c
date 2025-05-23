@@ -6,7 +6,6 @@
 uint8_t task_running = 1;
 uint8_t task_index = 2;
 float speed = 0.0f;
-int flag = 0;
 VariableEntry variable_table[] = {
         {"index", &task_index, VAR_INT},
 };
