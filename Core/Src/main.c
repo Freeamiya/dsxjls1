@@ -123,31 +123,41 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      MPU6050_Read_All(&hi2c2, &MPU6050);
+//      tof_distance = readRangeContinuousMillimeters(&distanceStr);
+      uart_printf("Distance: %d mm\r\n", tof_distance);
+//      MPU6050_Read_All(&hi2c2, &MPU6050);
 //      uart_printf("%.2f,%.2f,%.2f\r\n",MPU6050.KalmanAngleX, MPU6050.KalmanAngleY, MPU6050.AngleZ);
-      if(task_running == 1) {
-          switch (task_index) {
-            case 1:
-                task1();
-                break;
-            case 2:
-                task2();
-                break;
-            case 3:
-                task3();
-                break;
-            case 4:
-                task4();
-                break;
-            case 5:
-                task5();
-                break;
-            case 6:
-                task6();
-                break;
-            default: ;
-          }
-      }
+//      if(task_running == 1) {
+//          switch (task_index) {
+//            case 1:
+//                task1();
+//                break;
+//            case 2:
+////                task2();
+////                  static int sum = 0;
+//                  tof_distance = readRangeContinuousMillimeters(&distanceStr);
+////                  for(int i = 0; i < 9; i++) {
+////                      sum += dis_buf[i];
+////                      dis_buf[i+1] = dis_buf[i];
+////                  }
+////                  dis_buf[0] = tof_distance;
+//                  uart_printf("Distance: %d mm\r\n", tof_distance);
+//                break;
+//            case 3:
+//                task3();
+//                break;
+//            case 4:
+//                task4();
+//                break;
+//            case 5:
+//                task5();
+//                break;
+//            case 6:
+//                task6();
+//                break;
+//            default: ;
+//          }
+//      }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -268,83 +278,83 @@ float my_atof(const char *str)
 
     return res * sign;
 }
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    if (huart->Instance == USART1)
+    {
+        rx_data[Size] = '\0';  // 添加结束符
+
+        char *token1 = strtok((char *)rx_data, ",");
+        char *token2 = strtok(NULL, ",");
+        char *token3 = strtok(NULL, ",");
+
+        char msg[64] = {0};
+
+        if (token1 && token2 && token3 && strcmp(token1, "index") == 0)
+        {
+            // index,任务号,参数值 模式
+            int index_val = my_atoi(token2);
+            int param_val = my_atoi(token3);
+            task_index = index_val;
+
+            if (param_val != 0 && index_val >= 0 && index_val < 10) {
+                snprintf(msg, sizeof(msg), "index=%d param=%d\r\n", index_val, param_val);
+            } else {
+                snprintf(msg, sizeof(msg), "index=%d\r\n", index_val);
+            }
+            HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
+        }
+        else if (token1 && token2)
+        {
+            // 普通变量名,值 模式
+            if (strcmp(token1, "task_running") == 0)
+            {
+                task_running = my_atoi(token2);
+                snprintf(msg, sizeof(msg), "%s=%d\r\n", token1, task_running);
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
+            }
+            else{
+                const char *err = "Variable not found\r\n";
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)err, strlen(err));
+            }
+        }
+
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rx_data, sizeof(rx_data));
+        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
+    }
+}
 
 //void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 //{
 //    if (huart->Instance == USART1)
 //    {
-//        rx_data[Size] = '\0';  // 终止字符串，便于解析
-//        char *var_name = strtok((char *)rx_data, ",");
-//        char *value_str = strtok(NULL, ",");
-//        if (var_name && value_str)
-//        {
-//            int found = 0;
-//            char msg[64];
-//            for (int i = 0; i < variable_count; ++i)
-//            {
-//                if (strcmp(var_name, variable_table[i].name) == 0)
-//                {
-//                    found = 1;
-//                    switch (variable_table[i].type)
-//                    {
-//                        case VAR_INT:
-//                            *(int *)(variable_table[i].ptr) = my_atoi(value_str);
-//                            snprintf(msg, sizeof(msg), "%s=%d\r\n", var_name, *(int *)(variable_table[i].ptr));
-//                            HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
-//                            break;
-//                        case VAR_FLOAT:
-//                            *(float *)(variable_table[i].ptr) = my_atof(value_str);
-//                            snprintf(msg, sizeof(msg), "%s=%.2f\r\n", var_name, *(float *)(variable_table[i].ptr));
-//                            HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
-//                            break;
-//                    }
-//                    break;
+//        rx_data[Size] = '\0';  // 添加字符串结束符，方便使用字符串函数
+//
+//        // 简单字符串解析
+//        char *token = strtok((char *)rx_data, ",");
+//        if (token != NULL) {
+//            char *var_name = token;
+//            token = strtok(NULL, ",");
+//            if (token != NULL) {
+//                int value = my_atoi(token);  // 字符串转整数
+//                if (strcmp(var_name, "index") == 0) {
+//                    task_index = value;
+//                    // 可选：反馈当前变量状态
+//                    char msg[64];
+//                    snprintf(msg, sizeof(msg), "index = %d\r\n", task_index);
+//                    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
+//                } else {
+//                    // 未知变量名，可选：发送错误信息
+//                    const char *error_msg = "Unknown variable\r\n";
+//                    HAL_UART_Transmit_DMA(&huart1, (uint8_t *) error_msg, strlen(error_msg));
 //                }
 //            }
-//            if (!found)
-//            {
-//                const char *err = "Variable not found\r\n";
-////                HAL_UART_Transmit(&huart1, (uint8_t *)err, strlen(err), HAL_MAX_DELAY);
-//                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)err, strlen(err));
-//            }
 //        }
-//        // 重启接收
+//        // 重新开启DMA接收
 //        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rx_data, sizeof(rx_data));
 //        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
 //    }
 //}
-
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-    if (huart->Instance == USART1)
-    {
-        rx_data[Size] = '\0';  // 添加字符串结束符，方便使用字符串函数
-
-        // 简单字符串解析
-        char *token = strtok((char *)rx_data, ",");
-        if (token != NULL) {
-            char *var_name = token;
-            token = strtok(NULL, ",");
-            if (token != NULL) {
-                int value = my_atoi(token);  // 字符串转整数
-                if (strcmp(var_name, "index") == 0) {
-                    task_index = value;
-                    // 可选：反馈当前变量状态
-                    char msg[64];
-                    snprintf(msg, sizeof(msg), "index = %d\r\n", task_index);
-                    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
-                } else {
-                    // 未知变量名，可选：发送错误信息
-                    const char *error_msg = "Unknown variable\r\n";
-                    HAL_UART_Transmit_DMA(&huart1, (uint8_t *) error_msg, strlen(error_msg));
-                }
-            }
-        }
-        // 重新开启DMA接收
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rx_data, sizeof(rx_data));
-        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
-    }
-}
 
 /* USER CODE END 4 */
 
