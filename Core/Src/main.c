@@ -31,6 +31,7 @@
 #include "VL53L0X.h"
 #include "tasks.h"
 #include "UI_ble.h"
+#include "mpu6050.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +53,7 @@
 
 /* USER CODE BEGIN PV */
 uint8_t rx_data[256] = {0};  // 接收缓冲区
+MPU6050_t MPU6050;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -111,7 +113,7 @@ int main(void)
   setVcselPulsePeriod(VcselPeriodFinalRange, 12);
   setMeasurementTimingBudget(500 * 1000UL);
   startContinuous(0);
-
+  MPU6050_Init(&hi2c2);
   HAL_Delay(100);
   if(task_index == 1) task1();
   /* USER CODE END 2 */
@@ -120,6 +122,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+      MPU6050_Read_All(&hi2c2, &MPU6050);
+//      uart_printf("%.2f,%.2f,%.2f\r\n",MPU6050.KalmanAngleX, MPU6050.KalmanAngleY, MPU6050.AngleZ);
       if(task_running == 1) {
           switch (task_index) {
                 case 1:
