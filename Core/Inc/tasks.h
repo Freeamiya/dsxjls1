@@ -7,8 +7,6 @@
 
 #include "stm32f1xx_hal.h"
 
-extern uint8_t task_running;
-extern uint8_t task_index;
 
 void task1();
 

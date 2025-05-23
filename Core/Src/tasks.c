@@ -4,9 +4,6 @@
 
 #include "tasks.h"
 
-uint8_t task_running = 0;
-uint8_t task_index = 6;
-
 void task1() {
 }
 

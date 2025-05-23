@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "i2c.h"
 #include "rtc.h"
 #include "spi.h"
@@ -28,8 +29,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdlib.h>
 #include "VL53L0X.h"
 #include "tasks.h"
+#include "UI_ble.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,8 +53,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+// ���ڽ��ջ�����
 uint16_t tof_distance;
 statInfo_t_VL53L0X distanceStr;
+uint8_t rx_data[256] = {0};  // 接收缓冲区
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,12 +99,16 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rx_data, sizeof(rx_data));
+    __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
   // vl53l0x tof
   initVL53L0X(1, &hi2c1);
   // Configure the sensor for high accuracy and speed in 20 cm.
@@ -116,32 +125,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+//      uart_printf(":%d,%f,%d\r\n", task_index,speed,flag);
     /* USER CODE END WHILE */
-    tof_distance = readRangeSingleMillimeters(&distanceStr);
-    uart_printf("%d\r\n", tof_distance);
-    if(task_running == 1) {
-      switch (task_index) {
-        case 1:
-          task1();
-          break;
-        case 2:
-          task2();
-          break;
-        case 3:
-          task3();
-          break;
-        case 4:
-          task4();
-          break;
-        case 5:
-          task5();
-          break;
-        case 6:
-          task6();
-          break;
-        default: ;
-      }
-    }
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -195,6 +181,50 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    if (huart->Instance == USART1)
+    {
+        rx_data[Size] = '\0';  // 终止字符串，便于解析
+        char *var_name = strtok((char *)rx_data, ",");
+        char *value_str = strtok(NULL, ",");
+        if (var_name && value_str)
+        {
+            int found = 0;
+            char msg[64];
+            for (int i = 0; i < variable_count; ++i)
+            {
+                if (strcmp(var_name, variable_table[i].name) == 0)
+                {
+                    found = 1;
+                    switch (variable_table[i].type)
+                    {
+                        case VAR_INT:
+                            *(int *)(variable_table[i].ptr) = atoi(value_str);
+                            snprintf(msg, sizeof(msg), "%s=%d\r\n", var_name, *(int *)(variable_table[i].ptr));
+                            HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
+                            break;
+                        case VAR_FLOAT:
+                            *(float *)(variable_table[i].ptr) = atof(value_str);
+                            snprintf(msg, sizeof(msg), "%s=%.2f\r\n", var_name, *(float *)(variable_table[i].ptr));
+                            HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
+                            break;
+                    }
+                    break;
+                }
+            }
+            if (!found)
+            {
+                const char *err = "Variable not found\r\n";
+//                HAL_UART_Transmit(&huart1, (uint8_t *)err, strlen(err), HAL_MAX_DELAY);
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)err, strlen(err));
+            }
+        }
+        // 重启接收
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rx_data, sizeof(rx_data));
+        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
+    }
+}
 
 /* USER CODE END 4 */
 
