@@ -29,6 +29,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "VL53L0X.h"
+#include "tasks.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,7 +100,6 @@ int main(void)
   MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
   // vl53l0x tof
   initVL53L0X(1, &hi2c1);
   // Configure the sensor for high accuracy and speed in 20 cm.
@@ -108,6 +108,8 @@ int main(void)
   setVcselPulsePeriod(VcselPeriodFinalRange, 12);
   setMeasurementTimingBudget(500 * 1000UL);
 
+  HAL_Delay(100);
+  uart_printf("System initialization successful!\r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -115,9 +117,31 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    // tof_distance = readRangeSingleMillimeters(&distanceStr);
+    tof_distance = readRangeSingleMillimeters(&distanceStr);
     uart_printf("%d\r\n", tof_distance);
-    HAL_Delay(20);
+    if(task_running == 1) {
+      switch (task_index) {
+        case 1:
+          task1();
+          break;
+        case 2:
+          task2();
+          break;
+        case 3:
+          task3();
+          break;
+        case 4:
+          task4();
+          break;
+        case 5:
+          task5();
+          break;
+        case 6:
+          task6();
+          break;
+        default: ;
+      }
+    }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
