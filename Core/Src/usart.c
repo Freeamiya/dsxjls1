@@ -113,5 +113,12 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
-
+void uart_printf(const char *format, ...) {
+  char buf[128];
+  va_list args;
+  va_start(args, format);
+  vsprintf(buf, format, args);
+  va_end(args);
+  HAL_UART_Transmit(&huart1, (uint8_t *)buf, strlen(buf), 0xFFFF);
+}
 /* USER CODE END 1 */
