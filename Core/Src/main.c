@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "VL53L0X.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +49,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint16_t tof_distance;
+statInfo_t_VL53L0X distanceStr;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,6 +100,14 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  // vl53l0x tof
+  initVL53L0X(1, &hi2c1);
+  // Configure the sensor for high accuracy and speed in 20 cm.
+  setSignalRateLimit(200);
+  setVcselPulsePeriod(VcselPeriodPreRange, 6);
+  setVcselPulsePeriod(VcselPeriodFinalRange, 12);
+  setMeasurementTimingBudget(500 * 1000UL);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,7 +115,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+    // tof_distance = readRangeSingleMillimeters(&distanceStr);
+    uart_printf("%d\r\n", tof_distance);
+    HAL_Delay(20);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
