@@ -124,40 +124,40 @@ int main(void)
   while (1)
   {
 //      tof_distance = readRangeContinuousMillimeters(&distanceStr);
-      uart_printf("Distance: %d mm\r\n", tof_distance);
+//      uart_printf("Distance: %d mm\r\n", tof_distance);
 //      MPU6050_Read_All(&hi2c2, &MPU6050);
 //      uart_printf("%.2f,%.2f,%.2f\r\n",MPU6050.KalmanAngleX, MPU6050.KalmanAngleY, MPU6050.AngleZ);
-//      if(task_running == 1) {
-//          switch (task_index) {
-//            case 1:
-//                task1();
-//                break;
-//            case 2:
-////                task2();
-////                  static int sum = 0;
-//                  tof_distance = readRangeContinuousMillimeters(&distanceStr);
-////                  for(int i = 0; i < 9; i++) {
-////                      sum += dis_buf[i];
-////                      dis_buf[i+1] = dis_buf[i];
-////                  }
-////                  dis_buf[0] = tof_distance;
-//                  uart_printf("Distance: %d mm\r\n", tof_distance);
-//                break;
-//            case 3:
-//                task3();
-//                break;
-//            case 4:
-//                task4();
-//                break;
-//            case 5:
-//                task5();
-//                break;
-//            case 6:
-//                task6();
-//                break;
-//            default: ;
-//          }
-//      }
+      if(task_running == 1) {
+          switch (task_index) {
+            case 1:
+                task1();
+                break;
+            case 2:
+//                task2();
+//                  static int sum = 0;
+                  tof_distance = readRangeContinuousMillimeters(&distanceStr);
+//                  for(int i = 0; i < 9; i++) {
+//                      sum += dis_buf[i];
+//                      dis_buf[i+1] = dis_buf[i];
+//                  }
+//                  dis_buf[0] = tof_distance;
+                  uart_printf("Distance: %d mm\r\n", tof_distance);
+                break;
+            case 3:
+                task3();
+                break;
+            case 4:
+                task4();
+                break;
+            case 5:
+                task5();
+                break;
+            case 6:
+                task6();
+                break;
+            default: ;
+          }
+      }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
