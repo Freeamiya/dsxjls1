@@ -21,7 +21,6 @@
 #include "dma.h"
 #include "i2c.h"
 #include "rtc.h"
-#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -29,7 +28,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include <stdlib.h>
 #include "VL53L0X.h"
 #include "tasks.h"
 #include "UI_ble.h"
@@ -102,7 +100,6 @@ int main(void)
   MX_DMA_Init();
   MX_I2C1_Init();
   MX_RTC_Init();
-  MX_SPI1_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
   MX_I2C2_Init();
@@ -125,7 +122,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//      uart_printf(":%d,%f,%d\r\n", task_index,speed,flag);
+      uart_printf(":%d,%f,%d\r\n", task_index,speed,flag);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -181,6 +178,56 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+int my_atoi(const char *str)
+{
+    int res = 0;
+    int sign = 1;
+    if (*str == '-') {
+        sign = -1;
+        str++;
+    }
+    while (*str >= '0' && *str <= '9') {
+        res = res * 10 + (*str - '0');
+        str++;
+    }
+    return res * sign;
+}
+
+float my_atof(const char *str)
+{
+    float res = 0.0f;
+    float frac = 0.0f;
+    int sign = 1;
+    int after_dot = 0;
+
+    if (*str == '-') {
+        sign = -1;
+        str++;
+    }
+
+    while (*str)
+    {
+        if (*str >= '0' && *str <= '9') {
+            if (after_dot) {
+                frac = frac * 10 + (*str - '0');
+                after_dot *= 10;
+            } else {
+                res = res * 10 + (*str - '0');
+            }
+        } else if (*str == '.') {
+            if (after_dot) break;  // 已有小数点
+            after_dot = 1;
+        } else {
+            break;
+        }
+        str++;
+    }
+
+    if (after_dot)
+        res = res + frac / after_dot;
+
+    return res * sign;
+}
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
     if (huart->Instance == USART1)
@@ -200,12 +247,12 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
                     switch (variable_table[i].type)
                     {
                         case VAR_INT:
-                            *(int *)(variable_table[i].ptr) = atoi(value_str);
+                            *(int *)(variable_table[i].ptr) = my_atoi(value_str);
                             snprintf(msg, sizeof(msg), "%s=%d\r\n", var_name, *(int *)(variable_table[i].ptr));
                             HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
                             break;
                         case VAR_FLOAT:
-                            *(float *)(variable_table[i].ptr) = atof(value_str);
+                            *(float *)(variable_table[i].ptr) = my_atof(value_str);
                             snprintf(msg, sizeof(msg), "%s=%.2f\r\n", var_name, *(float *)(variable_table[i].ptr));
                             HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
                             break;

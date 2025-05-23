@@ -5,7 +5,6 @@
 #ifndef XJLS_UI_BLE_H
 #define XJLS_UI_BLE_H
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include "tasks.h"
