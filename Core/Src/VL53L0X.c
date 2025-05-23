@@ -17,7 +17,8 @@ uint8_t g_isTimeout = 0;
 uint16_t g_timeoutStartMs;
 uint8_t g_stopVariable; // read by init and used when starting measurement; is StopVariable field of VL53L0X_DevData_t structure in API
 uint32_t g_measTimBudUs;
-
+uint16_t tof_distance;
+statInfo_t_VL53L0X distanceStr;
 #define I2C_TIMEOUT 100 // I2C timeout in ms
 #define I2C_READ 1
 #define I2C_WRITE 0

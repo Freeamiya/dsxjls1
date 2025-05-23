@@ -234,5 +234,6 @@ typedef struct {
   uint16_t msrc_dss_tcc_mclks, pre_range_mclks, final_range_mclks;
   uint32_t msrc_dss_tcc_us,    pre_range_us,    final_range_us;
 }SequenceStepTimeouts;
-
+extern uint16_t tof_distance;
+extern statInfo_t_VL53L0X distanceStr;
 #endif
