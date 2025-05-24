@@ -7,7 +7,7 @@
 
 #include "counter.h"
 uint8_t task_running = 1;
-uint8_t task_index = 4;
+uint8_t task_index = 5;
 int task2_flag = 0;
 uint16_t dis_buf[10] = {0};
 float angle_sample[SAMPLE_SIZE];
@@ -52,7 +52,8 @@ void task4() {
 }
 
 void task5() {
-
+    angle_sample_push(mix_angle);
+    detect_peaks_and_valleys();
 }
 
 void task6() {
