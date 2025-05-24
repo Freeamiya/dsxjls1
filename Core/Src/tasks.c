@@ -7,7 +7,7 @@
 
 #include "counter.h"
 uint8_t task_running = 1;
-uint8_t task_index = 5;
+uint8_t task_index = 1;
 int task2_flag = 0;
 uint16_t dis_buf[10] = {0};
 float angle_sample[SAMPLE_SIZE];
@@ -80,7 +80,7 @@ void detect_peaks_and_valleys() {
     if ( b2 > 35 && b0 < b1 && b1 < b2 && b2 > b3 && b3 > b4) {
         if (task_index == 2) {
             tof_distance = readRangeSingleMillimeters(&distanceStr);
-            task2_result = 720 - 115 - tof_distance;
+            task2_result = 730 - 115 - tof_distance;
             if (counter.led_ms == 0) {
                 uart_printf("tof=%d,result:%d\r\n", tof_distance, task2_result);
             }
@@ -89,7 +89,7 @@ void detect_peaks_and_valleys() {
     }
 
     // 检测极小值（最高点）
-    if (b2<10&&b0 > b1 && b1 > b2 && b2 < b3 && b3 < b4) {
+    if (b2<15&&b0 > b1 && b1 > b2 && b2 < b3 && b3 < b4) {
         if (task_index == 3) {
             // 计算周期
             current_time = HAL_GetTick();
@@ -167,7 +167,7 @@ void detect_peaks_and_valleys() {
         switch (move_state) {
             case STATE_WAIT:
                 // 检测最高点 比较差值
-                if (b2 < 10 && b0 > b1 && b1 > b2 && b2 < b3 && b3 < b4) {
+                if (b2 < 20 && b0 > b1 && b1 > b2 && b2 < b3 && b3 < b4) {
                     tof_distance = readRangeSingleMillimeters(&distanceStr);
                     if (counter.led_ms == 0) {
                         uint16_t diff = tof_distance - last_distance > 0
