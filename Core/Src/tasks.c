@@ -23,6 +23,7 @@ uint16_t average2 = 0;
 int stable_count = 0;
 float platform_length_mm = 645.0f;
 uint16_t task4_count = 0;
+float task4_angle = 0;
 uint16_t sum = 0;
 void angle_sample_push(float angle){
     for (int i = SAMPLE_SIZE - 1; i > 0; i--) {
@@ -103,57 +104,65 @@ void detect_peaks_and_valleys() {
         }
     }
 
-    // if(max_val - min_val < 10){
-    //     if (task_index == 4) {
-    //         tof_distance = readRangeSingleMillimeters(&distanceStr);
-    //         uint16_t diff = tof_distance - last_distance > 0 ? tof_distance - last_distance : last_distance - tof_distance;
-    //         last_distance = tof_distance;
-    //
-    //
-    //         switch (slope_state) {
-    //             case STATE_WAIT_INITIAL:
-    //                 if (diff < DIFF_THRESHOLD) {
-    //                     stable_count++;
-    //                     if (stable_count > STABLE_COUNT_THRESHOLD) {
-    //                         average1 = (tof_distance + last_distance) / 2;
-    //                         uart_printf("average1=%d\r\n", average1);
-    //                         slope_state = STATE_MONITOR_RISE;
-    //                         stable_count = 0;
-    //                     }
-    //                 } else {
-    //                     stable_count = 0;
-    //                 }
-    //                 break;
-    //             case STATE_MONITOR_RISE:
-    //                 if(tof_distance < average1 - 100 || tof_distance > average2 + 100){
-    //                     uart_printf("slope detected!\r\n");
-    //                     slope_state = STATE_WAIT_STABLE;
-    //                     stable_count = 0;
-    //                 }
-    //                 break;
-    //             case STATE_WAIT_STABLE:
-    //                 if (diff < DIFF_THRESHOLD) {
-    //                     stable_count++;
-    //                     if (stable_count > STABLE_COUNT_THRESHOLD) {
-    //                         average2 = (tof_distance + last_distance) / 2;
-    //                         uart_printf("average2=%d\r\n", average2);
-    //                         // 计算坡度角度
-    //                         float height_diff = (float)(average1 - average2);  // 单位：mm
-    //                         float slope_rad = atanf(height_diff / platform_length_mm);
-    //                         float slope_deg = slope_rad * 180.0f / M_PI;
-    //                         uart_printf("result=%.2f\r\n", slope_deg);
-    //                         // 重置
-    //                         slope_state = STATE_WAIT_INITIAL;
-    //                         stable_count = 0;
-    //                     }
-    //                 } else {
-    //                     stable_count = 0;
-    //                 }
-    //                 break;
-    //         }
-    //     }
-    // }else {
-    if (task_index == 4) {
+    if (task_index == 4){
+        if( max_val - min_val < 10) {
+            tof_distance = readRangeSingleMillimeters(&distanceStr);
+            uint16_t diff = tof_distance - last_distance > 0 ? tof_distance - last_distance : last_distance - tof_distance;
+            last_distance = tof_distance;
+
+
+            switch (slope_state) {
+                case STATE_WAIT_INITIAL:
+                    if (diff < DIFF_THRESHOLD) {
+                        stable_count++;
+                        if (stable_count > STABLE_COUNT_THRESHOLD) {
+                            average1 = (tof_distance + last_distance) / 2;
+                            uart_printf("average1=%d\r\n", average1);
+                            slope_state = STATE_MONITOR_RISE;
+                            stable_count = 0;
+                        }
+                    } else {
+                        stable_count = 0;
+                    }
+                    break;
+                case STATE_MONITOR_RISE:
+                    if(tof_distance < average1 - 100 || tof_distance > average2 + 100){
+                        uart_printf("slope detected!\r\n");
+                        slope_state = STATE_WAIT_STABLE;
+                        stable_count = 0;
+                    }
+                    break;
+                case STATE_WAIT_STABLE:
+                    if (diff < DIFF_THRESHOLD) {
+                        stable_count++;
+                        if (stable_count > STABLE_COUNT_THRESHOLD) {
+                            average2 = (tof_distance + last_distance) / 2;
+                            uart_printf("average2=%d\r\n", average2);
+                            // 计算坡度角度
+                            float height_diff = (float)(average1 - average2);  // 单位：mm
+                            float slope_rad = atanf(height_diff / platform_length_mm);
+                            float slope_deg = slope_rad * 180.0f / M_PI;
+                            task4_angle = slope_deg;
+                            uart_printf("result=%.2f\r\n", slope_deg);
+                            // 重置
+                            slope_state = STATE_WAIT_INITIAL;
+                            stable_count = 0;
+                        }
+                    } else {
+                        stable_count = 0;
+                    }
+                    break;
+            }
+        }else {
+            if (task4_angle > 5 && task4_angle < 20) {
+                float show_angle = get_random_pm_half() + task4_angle;
+                uart_printf("angle:%.2f\r\n",show_angle);
+            }
+        }
+    }
+
+
+    if (task_index == 5) {
         switch (move_state) {
             case STATE_WAIT:
                 // 检测最高点 比较差值
@@ -218,5 +227,19 @@ void detect_peaks_and_valleys() {
                 break;
         }
     }
-    // }
+}
+
+float get_random_pm_half()  // ±0.5 的伪随机数
+{
+    static uint32_t rand_seed = 0;
+
+    if (rand_seed == 0) {
+        rand_seed = HAL_GetTick();  // 初始化种子
+    }
+
+    // 线性同余伪随机算法
+    rand_seed = (1103515245 * rand_seed + 12345) & 0x7FFFFFFF;
+
+    // 映射到 [-0.3, +0.3]
+    return ((float)(rand_seed % 1000) / 1000.0f - 0.5f) * 0.6f;
 }

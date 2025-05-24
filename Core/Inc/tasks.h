@@ -40,6 +40,8 @@ void task6();
 
 void detect_peaks_and_valleys();
 
+float get_random_pm_half();
+
 extern float mix_angle;
 extern uint16_t dis_buf[10];
 extern uint8_t task_running;
