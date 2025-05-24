@@ -18,6 +18,7 @@ uint32_t current_time = 0;
 uint16_t last_distance = 0;
 SlopeState slope_state = STATE_WAIT_INITIAL;
 MOVESlopeState move_state = STATE_WAIT;
+Task_Six_State task_six_state = STATE_RECORD_BUF;
 uint16_t average1 = 0;
 uint16_t average2 = 0;
 int stable_count = 0;
@@ -25,6 +26,19 @@ float platform_length_mm = 645.0f;
 uint16_t task4_count = 0;
 float task4_angle = 0;
 uint16_t sum = 0;
+
+uint32_t task6_period = 600;
+uint32_t buf[SAMPLE_COUNT][2] = {0};
+uint16_t cal_count = 0;
+uint32_t period_sum = 0;
+uint8_t fist_plot = 1;
+uint32_t sample_gap = 0;
+uint16_t points_count = 0;
+uint32_t min_mistake = 5;
+uint32_t min_distance_diff = 80;
+uint8_t points_flag[SAMPLE_COUNT] = {0};
+uint32_t cans_num = 0;
+
 void angle_sample_push(float angle){
     for (int i = SAMPLE_SIZE - 1; i > 0; i--) {
         angle_sample[i] = angle_sample[i - 1];
@@ -57,7 +71,8 @@ void task5() {
 }
 
 void task6() {
-
+    angle_sample_push(mix_angle);
+    detect_peaks_and_valleys();
 }
 
 
@@ -224,6 +239,38 @@ void detect_peaks_and_valleys() {
                         uart_printf("result=%.2f\r\n", slope_deg);
                     }
                     counter.led_ms = 100;
+                }
+                break;
+        }
+    }
+
+    if (task_index == 6) {
+        static int can_count = 0;
+        static int detect_flag = 0;
+        static uint32_t last_time = 0;
+        if (can_count == 1) {
+            last_time = HAL_GetTick();
+        } else if (can_count > 1) {
+            if (HAL_GetTick() - last_time > 1000000) {
+                return;
+            }
+        }
+        tof_distance = readRangeSingleMillimeters(&distanceStr);
+        // uart_printf("%d\r\n",average2);
+        switch (detect_flag) {
+            case 0:
+                if (tof_distance < average2 - 20) {
+                    detect_flag = 1;
+                    uart_printf("detect\r\n");
+                }
+                break;
+            case 1:
+                if (tof_distance > average2) {
+                    detect_flag = 0;
+                    can_count++;
+                    uart_printf("can:%d\r\n", can_count);
+                    if (can_count > 10)can_count = 10;
+                    cans_num = can_count;
                 }
                 break;
         }

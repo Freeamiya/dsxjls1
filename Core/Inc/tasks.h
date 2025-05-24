@@ -11,6 +11,8 @@
 #define SAMPLE_SIZE 20
 #define DIFF_THRESHOLD 10       // 判断是否变化的阈值（单位：mm）
 #define STABLE_COUNT_THRESHOLD 30  // 连续稳定多少次才认为“平稳”
+#define SAMPLE_COUNT 30
+
 // 状态机标志
 typedef enum {
     STATE_WAIT_INITIAL,
@@ -23,6 +25,12 @@ typedef enum {
     STATE_RECORD,
     STATE_STABLE
 } MOVESlopeState;
+
+typedef enum {
+    STATE_CALTIME,
+    STATE_RECORD_BUF,
+    STATE_CAN
+} Task_Six_State;
 
 void angle_sample_push(float angle);
 
