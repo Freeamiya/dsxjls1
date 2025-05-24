@@ -303,10 +303,14 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         else if (token1 && token2)
         {
             // 普通变量名,值 模式
-            if (strcmp(token1, "task_running") == 0)
+            if (strcmp(token1, "run") == 0)
             {
                 task_running = my_atoi(token2);
                 snprintf(msg, sizeof(msg), "%s=%d\r\n", token1, task_running);
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
+            }else if (strcmp(token1, "lenth") == 0) {
+                platform_length_mm = my_atof(token2);
+                snprintf(msg, sizeof(msg), "%s=%.2f\r\n", token1, platform_length_mm);
                 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)msg, strlen(msg));
             }
             else{

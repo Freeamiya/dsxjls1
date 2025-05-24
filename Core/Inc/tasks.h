@@ -18,6 +18,12 @@ typedef enum {
     STATE_WAIT_STABLE
 } SlopeState;
 
+typedef enum {
+    STATE_WAIT,
+    STATE_RECORD,
+    STATE_STABLE
+} MOVESlopeState;
+
 void angle_sample_push(float angle);
 
 void task1();
@@ -39,4 +45,5 @@ extern uint16_t dis_buf[10];
 extern uint8_t task_running;
 extern uint8_t task_index;
 extern uint16_t task2_result;
+extern float platform_length_mm;
 #endif //TASKS_H
