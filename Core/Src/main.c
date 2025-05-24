@@ -56,8 +56,7 @@
 /* USER CODE BEGIN PV */
 uint8_t rx_data[256] = {0};  // 接收缓冲区
 MPU6050_t MPU6050;
-float
-mix_angle = 0;
+float mix_angle = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -129,7 +128,7 @@ int main(void)
   while (1)
   {
       MPU6050_Read_All(&hi2c2, &MPU6050);
-      // uart_printf("%d\r\n",tof_distance);
+      // uart_printf("%d,%.2f\r\n",tof_distance,mix_angle);
       // mix_angle = sqrt(pow(MPU6050.KalmanAngleX, 2) + pow(MPU6050.KalmanAngleY, 2));
       mix_angle = sqrt(pow(MPU6050.Gx,2)+pow(MPU6050.Gy,2));
       // uart_printf("%.2f,%.2f,%.2f,%.2f\r\n",MPU6050.KalmanAngleX, MPU6050.KalmanAngleY, MPU6050.AngleZ,mix_angle);
