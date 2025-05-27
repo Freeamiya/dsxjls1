@@ -52,4 +52,6 @@
 |  └-- usart.c # 串口通信实现（里面Eivill补充了串口重定向函数）
 |-- .gitignore # Git 忽略列表
 |-- xjls.ioc # CubeMX 配置文件
+|-- README.md # 项目说明文档
+|-- 摆动测量系统.pdf # 校级联赛题目
 |-没写就是不用管
