@@ -49,7 +49,7 @@
 |  |-- main.c # 主程序入口
 |  |-- mpu6050.c # MPU6050 驱动实现
 |  |-- tasks.c # 状态机任务调度实现
-|  └-- usart.c # 串口通信实现（里面Eivill补充了串口重定向函数）
+|  └-- usart.c # 串口通信实现（里面Eivell补充了串口重定向函数）
 |-- .gitignore # Git 忽略列表
 |-- xjls.ioc # CubeMX 配置文件
 |-- README.md # 项目说明文档
